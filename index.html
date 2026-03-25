@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Change Management & Performance Assessment v4.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --surface2: #eef1f5;
+    --border: #d1d9e0;
+    --border-active: #2563eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --text-dim: #374151;
+    --accent: #2563eb;
+    --accent-glow: rgba(37,99,235,0.08);
+    --accent2: #0891b2;
+    --warn: #d97706;
+    --success: #059669;
+    --danger: #dc2626;
+    --red: #dc2626;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 56px;
+  }
+
+  .app-logo {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .header-sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+
+  .header-title {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
+  }
+
+  .header-spacer { flex: 1; }
+
+  .header-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+  .progress-pill {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.2rem 0.75rem;
+  }
+
+  .progress-pill span { color: var(--accent); font-weight: 600; }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.85rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn-ghost { background: transparent; color: var(--text-dim); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--border-active); }
+
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #2563eb; }
+
+  /* ── LAYOUT ── */
+  .app-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+    padding: 1rem 0;
+  }
+
+  .sidebar-section-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.5rem 1.25rem 0.25rem;
+    margin-top: 0.5rem;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.25rem;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    transition: all 0.12s;
+    border-left: 2px solid transparent;
+    line-height: 1.3;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text-dim); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-glow); }
+  .nav-item.completed .nav-dot { background: var(--success); }
+  .nav-item.na .nav-dot { background: var(--text-muted); }
+
+  .nav-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    min-width: 18px;
+    flex-shrink: 0;
+  }
+
+  .nav-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  /* ── MAIN ── */
+  .main-content {
+    padding: 2.5rem 3rem;
+    max-width: 900px;
+  }
+
+  .section-block {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .section-block.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    gap: 1rem;
+  }
+
+  .section-title-group { flex: 1; }
+
+  .section-badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 0.4rem;
+  }
+
+  .section-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .section-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    margin-top: 0.3rem;
+  }
+
+  .na-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface2);
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .na-toggle:hover { border-color: var(--warn); color: var(--warn); }
+  .na-toggle.active { border-color: var(--warn); color: var(--warn); background: rgba(245,158,11,0.08); }
+
+  /* ── QUESTIONS ── */
+  .questions-grid { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.25rem;
+    transition: border-color 0.15s;
+  }
+
+  .question-card:hover { border-color: #2a3040; }
+  .question-card.answered { border-left: 2px solid var(--success); }
+
+  .question-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .question-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15rem 0.4rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .question-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .question-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 0.75rem;
+    padding-left: 2rem;
+    line-height: 1.5;
+  }
+
+  /* ── INPUTS ── */
+  .field-textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    padding: 0.6rem 0.75rem;
+    resize: vertical;
+    min-height: 72px;
+    transition: border-color 0.15s;
+    line-height: 1.5;
+  }
+
+  .field-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+  }
+
+  .field-textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+  .field-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s;
+  }
+
+  .field-input:focus { outline: none; border-color: var(--accent); background: #fff; }
+  .field-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-left: 2rem;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--bg);
+    cursor: pointer;
+    margin-top: 3px;
+    position: relative;
+    transition: all 0.12s;
+  }
+
+  .checkbox-item input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkbox-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 1px;
+    font-size: 11px;
+    color: white;
+  }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-left: 2rem;
+  }
+
+  .radio-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+
+  .radio-item input[type="radio"] {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg);
+    cursor: pointer;
+    margin-top: 3px;
+    position: relative;
+    transition: all 0.12s;
+  }
+
+  .radio-item input[type="radio"]:checked {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .radio-item input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── NA OVERLAY ── */
+  .na-overlay {
+    background: rgba(217,119,6,0.05);
+    border: 1px dashed rgba(217,119,6,0.3);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    color: var(--warn);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    display: none;
+  }
+  .na-overlay-label { font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .na-overlay-rationale { color: var(--text-dim); font-family: var(--sans); font-size: 0.82rem; margin-top: 0.3rem; font-style: italic; }
+  .na-overlay-edit { margin-top: 0.6rem; font-size: 0.72rem; cursor: pointer; text-decoration: underline; opacity: 0.7; }
+  .na-overlay-edit:hover { opacity: 1; }
+
+  .section-block.na-mode .na-overlay { display: block; }
+  .section-block.na-mode .questions-grid { display: none; }
+
+  /* ── NA RATIONALE MODAL ── */
+  .na-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+  }
+  .na-modal-overlay.open { display: flex; }
+  .na-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.75rem;
+    width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  }
+  .na-modal-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+  .na-modal-sub { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.25rem; font-family: var(--mono); }
+  .na-modal textarea {
+    width: 100%; min-height: 90px; resize: vertical;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text); font-family: var(--sans); font-size: 0.82rem;
+    padding: 0.6rem 0.75rem; line-height: 1.5; margin-bottom: 1.25rem;
+  }
+  .na-modal textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
+  .na-modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+  /* ── NAVIGATION FOOTER ── */
+  .section-nav-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── PROGRESS BAR ── */
+  .overall-progress {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border);
+    z-index: 99;
+  }
+
+  .overall-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
+  }
+
+  /* ── DATE INPUT ── */
+  input[type="date"] {
+    color-scheme: light;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+    width: 200px;
+  }
+
+  input[type="date"]:focus { outline: none; border-color: var(--accent); }
+
+  /* ── STANDARD TAG ── */
+  .standard-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    color: var(--accent2);
+    margin-right: 0.3rem;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #c1c9d4; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a0aab4; }
+
+  /* ── EXPORT MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  }
+  .modal-title { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+  .modal-sub { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.5rem; font-family: var(--mono); }
+  .export-options { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .export-opt {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.9rem 1rem; border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer; transition: all 0.15s; background: var(--bg);
+  }
+  .export-opt:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .export-opt-icon { font-size: 1.5rem; width: 36px; text-align: center; flex-shrink: 0; }
+  .export-opt-info { flex: 1; }
+  .export-opt-title { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.1rem; }
+  .export-opt-desc { font-size: 0.72rem; color: var(--text-muted); }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
+  .spinner {
+    display: none; width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 5px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── PRINT / PDF ── */
+  @media print {
+    .app-header, .sidebar, .overall-progress, .section-nav-footer,
+    .modal-overlay, .na-toggle { display: none !important; }
+    .app-layout { display: block !important; }
+    .main-content { padding: 0 !important; max-width: 100% !important; }
+    .section-block { display: block !important; page-break-before: always; }
+    .section-block:first-child { page-break-before: avoid; }
+    body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+    .section-title { font-size: 14pt; font-weight: bold; }
+    .section-badge { font-size: 8pt; color: #555; }
+    .standard-tag { border: 1px solid #ccc; color: #333; }
+    .question-card { border: 1px solid #ddd; page-break-inside: avoid; margin-bottom: 8pt; }
+    .question-label { font-weight: bold; font-size: 10pt; }
+    .question-hint { font-size: 9pt; color: #555; }
+    .field-textarea, .field-input { border: 1px solid #ccc; background: #fafafa; min-height: 36pt; width: 100%; }
+    .na-overlay { border: 1px dashed #aaa; color: #888; padding: 8pt; }
+    .na-overlay-rationale { color: #555; font-style: italic; margin-top: 4pt; }
+    .na-overlay-edit { display: none; }
+    .section-block.na-mode .questions-grid { display: none !important; }
+    .section-header { margin-bottom: 10pt; }
+    @page { margin: 1.2cm 1.5cm; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-logo">AIeMD CMP</div>
+  <div class="header-sep"></div>
+  <div class="header-title">Change Management &amp; Performance Assessment — v4.0</div>
+  <div class="header-spacer"></div>
+  <div class="header-actions">
+    <div class="progress-pill">Sections: <span id="completedCount">0</span>/35</div>
+    <button class="btn btn-ghost" onclick="clearAll()">↺ Clear</button>
+    <button class="btn btn-ghost" onclick="exportJSON()">⬇ JSON</button>
+    <button class="btn btn-primary" onclick="openExportModal()">⬆ Export</button>
+  </div>
+</header>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal" onclick="closeExportModal(event)">
+  <div class="modal">
+    <div class="modal-title">Export Assessment</div>
+    <div class="modal-sub">Choose export format</div>
+    <div class="export-options">
+      <div class="export-opt" onclick="exportPDF()">
+        <div class="export-opt-icon">📄</div>
+        <div class="export-opt-info">
+          <div class="export-opt-title">PDF</div>
+          <div class="export-opt-desc">Print-ready document via browser print dialog. All sections included.</div>
+        </div>
+      </div>
+      <div class="export-opt" onclick="exportForDOCX(this)">
+        <div class="export-opt-icon">📝</div>
+        <div class="export-opt-info">
+          <div class="export-opt-title">Word Document (.docx)</div>
+          <div class="export-opt-desc">Saves responses as JSON, then shows how to generate a .docx with the companion Python script.</div>
+        </div>
+      </div>
+      <div class="export-opt" onclick="exportJSON(); closeExportModal()">
+        <div class="export-opt-icon">{ }</div>
+        <div class="export-opt-info">
+          <div class="export-opt-title">JSON Data</div>
+          <div class="export-opt-desc">Raw response data for import or further processing.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeExportModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="overall-progress">
+  <div class="overall-progress-fill" id="progressBar" style="width:0%"></div>
+</div>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <!-- MAIN -->
+  <main class="main-content" id="mainContent"></main>
+</div>
+
+<!-- NA RATIONALE MODAL -->
+<div class="na-modal-overlay" id="naRationaleModal">
+  <div class="na-modal">
+    <div class="na-modal-title">Mark Section as Not Applicable</div>
+    <div class="na-modal-sub" id="naModalSub">Section — provide rationale</div>
+    <textarea id="naRationaleInput" placeholder="Enter rationale for marking this section as N/A…"></textarea>
+    <div class="na-modal-footer">
+      <button class="btn btn-ghost" onclick="cancelNA()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmNA()">Confirm N/A</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SECTIONS = [
+  { id: 1, title: "Device Identification", std: null, questions: [
+    { id:"1.1", label:"Change Title", hint:"Short title reflecting description of change", type:"input" },
+    { id:"1.2", label:"Change Originator / Requestor", hint:"Name of person originating or requesting the change", type:"input" },
+    { id:"1.3", label:"Date of Submission", hint:"Date change requested", type:"date" },
+    { id:"1.4", label:"Product Lifecycle Phase", hint:"e.g., Development Phase, Post Design Freeze (V&V), Post-Market, etc.", type:"input" },
+    { id:"1.5", label:"Device Name", hint:"Name/brief description", type:"input" },
+    { id:"1.6", label:"Device Part No. / Serial No.", hint:"Part No. and Version; Serial No. and Version, if applicable", type:"input" },
+    { id:"1.7", label:"GMDN / UDI No.", hint:"Unique Device Identifier — refer to regulatory requirements by territory", type:"input" },
+    { id:"1.8", label:"Device Category", hint:"Check all that apply", type:"checkbox", options:["AI with no health / safety impact","AIeMD (AI-enabled Medical Device)","AIeHS (AI-enabled Health Software)","SaMD — with AI as a Safety Component or included in part or in full","SiMD — with AI as a Safety Component or includes AI in part or in full as a component or an accessory or providing a safety function","AI SOUP item","Other"] },
+    { id:"1.9", label:"AI Model Type", hint:"Select all that apply", type:"checkbox", options:["Deterministic AI — decision trees, logic","Machine Learning AI","Large Language Model","Large Image Model","Large Auditory Model","Multimodal Model","RAG","Hybrid (mix of multiple types)","Other"] },
+    { id:"1.10", label:"If Machine Learning, indicate approach to release of learning", type:"radio", options:["Not applicable — learning is not required / deterministic AI","Fixed / Locked — autonomous change is not permitted following release or during use in the field","Continual Learning with QA Check prior to integration of learning","Continuous Learning without QA Check prior to integration of learning"] },
+    { id:"1.11", label:"Urgency / Fast-Track CMP Process", type:"radio", options:["Urgent + Fast-Track: Section A and minimal approval only required (at least one of CEO/CTO/CSO)","Non-Urgent: Timely Change Required. Full CMP to be followed"] },
+    { id:"1.12", label:"Initial suggested Change Category", type:"radio", options:["Minor","Moderate","Significant"] },
+    { id:"1.13", label:"Change Priority", type:"radio", options:["High","Medium","Low"] }
+  ]},
+  { id: 2, title: "Change Description", std: null, questions: [
+    { id:"2.1", label:"Type of Change", type:"checkbox", options:["Preventive — to prevent occurrence of risk","Corrective — to avoid future occurrence of risk","Perfective — to improve features/performance","New Feature(s) — to add functionality","Other"] },
+    { id:"2.2", label:"Source and Reason for Change", hint:"Indicate if the change originated from an audit, customer request, process/product improvement, supplier request, cost improvement initiative, compliance risk, etc. Also indicate the reason for the change.", type:"textarea" },
+    { id:"2.3", label:"Justification for Change", hint:"Describe analysis performed to support this change as justifiable and necessary. Why is it appropriate to make this change at this time?", type:"textarea" },
+    { id:"2.4", label:"Parts/Component Nos Impacted", hint:"List all parts/components impacted or refer to attachment SBOM/AI BOM with highlighted parts", type:"textarea" },
+    { id:"2.5", label:"Effect / Impact of the Change on existing products on the market and the use of the device and outcomes related to the change", type:"textarea" }
+  ]},
+  { id: 3, title: "Intended Purpose", std: null, questions: [
+    { id:"3.1", label:"Intended Purpose / Use", hint:"Describe intended purpose/use — ensuring it reflects exactly the intended use statement on regulatory documentation, or provide reference and link to source document", type:"textarea" },
+    { id:"3.2", label:"Indications for Use", hint:"Describe indication for use — ensuring it reflects exactly the clinical indications on regulatory documentation, or provide reference and link to source document", type:"textarea" },
+    { id:"3.3", label:"Are there differences in the intended use/indications for use across different territories?", hint:"Yes/No. If yes, state what they are and why with reference to documents providing intended use statements as approved by regulatory bodies or internally.", type:"textarea" },
+    { id:"3.4", label:"Is the intended purpose / use / indication for use impacted by this change?", hint:"Yes/No. If yes, clearly state what is changed and why.", type:"textarea" }
+  ]},
+  { id: 4, title: "Regulatory Classification", std:"MDR 2017/745, IVDR 2017/745, FDA 21 CFR Part 820, UK MDR 2001", questions: [
+    { id:"4.1", label:"Regulatory Approval No.", hint:"CE Mark (EU), CE Mark (UK), FDA PMA/510(k)/IDE, Other", type:"textarea" },
+    { id:"4.2", label:"Products placed on the market", hint:"List devices on all relevant markets", type:"textarea" },
+    { id:"4.3", label:"Markets impacted by change", hint:"List all markets impacted by the change", type:"textarea" },
+    { id:"4.4", label:"Product / Device Risk Classification", hint:"EU: IIa/IIb/III/III Implantable; UK: IIa/IIb/III/III Implantable; US: exempt/I/II/III; Other", type:"textarea" }
+  ]},
+  { id: 5, title: "Software Classification and Compliance", std:"IEC 62304", questions: [
+    { id:"5.1", label:"Identify the current version of SDLC Standard IEC 62304", hint:"e.g., ED1 (EN ISO/IEC-62304 2015)", type:"input" },
+    { id:"5.2", label:"If AI requirements are specified in IEC 62304, have they been incorporated in QMS/SDLC? Describe/reference relevant processes/procedures.", hint:"ED2 includes AI requirements (currently in draft)", type:"textarea" },
+    { id:"5.3", label:"List standards for which compliance is claimed to software/AI standards or refer to GSPR or Essential Requirements documents.", hint:"e.g., IEC 63405 Test Methods for AIeMD, IEC 63621 Data Management, Performance Evaluation", type:"textarea" },
+    { id:"5.4", label:"Software System Version", hint:"List High Level Version of Software System", type:"input" },
+    { id:"5.5", label:"Software Builds", hint:"Identify software builds considered in scope of this change or reference release notes identifying the builds included upon implementation", type:"textarea" },
+    { id:"5.6", label:"Software Storage Location", hint:"Provide link to code storage location", type:"input" },
+    { id:"5.7", label:"Software Safety Classification / Software Rigor Level / Documentation Level", hint:"IEC 62304 ED1: Class A/B/C; IEC 62304 ED2: Rigor I/Rigor II; FDA Documentation Level: Basic/Enhanced", type:"checkbox", options:["IEC 62304 ED1 — Class A","IEC 62304 ED1 — Class B","IEC 62304 ED1 — Class C","IEC 62304 ED2 — Rigor I","IEC 62304 ED2 — Rigor II","FDA — Basic Documentation Level","FDA — Enhanced Documentation Level"] },
+    { id:"5.8", label:"Have all deliverables for the classification selected been satisfactorily reviewed and updated as appropriate?", hint:"Identify or reference deliverables under IEC 62304 requiring review/update for this change (e.g., Software Development Plan, Architecture Diagrams, Requirements, Testing, Risk Management, Configuration Management, Problem Resolution Reports, Release Notes)", type:"textarea" },
+    { id:"5.9", label:"AI / Software Component(s) Impacted", hint:"Name, Part No., Version. Ensure components listed are traceable to the architecture diagrams.", type:"textarea" },
+    { id:"5.10", label:"Software / AI / Security Coding Standards Applicable", hint:"Identify or reference all relevant coding standards for this device and highlight those impacted or requiring review as part of this change", type:"textarea" },
+    { id:"5.11", label:"Has an independent test house provided certification for ISO/IEC 62304?", hint:"Describe and provide ID revision. Does this change need to be communicated to the independent test house per the requirements agreed?", type:"textarea" }
+  ]},
+  { id: 6, title: "Software Development Lifecycle", std:"IEC 62304 ED1", na: true, questions: [
+    { id:"6.1", label:"Is there an impact to any of the following? Is there an impact to software? If not, this section can be N/A'd.", hint:"If yes, identify documents reviewed and if any updates are required. Provide description of proposed changes or redline of proposed changes where possible. Provide rationale where no change is required.", type:"textarea" },
+    { id:"6.2", label:"Quality Management System", hint:"Clause 4.1 QMS: Ensure the QMS is established and maintained for software development and maintenance. Evidence: SOPs, Software Development Plans, etc.", type:"textarea" },
+    { id:"6.3", label:"Risk Management", hint:"Clause 4.2: Implement risk management processes per ISO 14971 for the software lifecycle. Evidence: Risk Management SOPs, Plans/Reports.", type:"textarea" },
+    { id:"6.4", label:"Software Safety Classification", hint:"Clause 4.3 SSC: Classify the software items into Class A, B or C based on risk. Evidence: documented classification.", type:"textarea" },
+    { id:"6.5", label:"Legacy Software", hint:"Clause 4.4: Assess and document compliance approach for legacy software.", type:"textarea" },
+    { id:"6.6", label:"Software Development Planning", hint:"Clause 5.1: Create and maintain an SDP (ED2: include AI planning or reference same from SDP if applicable).", type:"textarea" },
+    { id:"6.7", label:"Software Requirements Analysis", hint:"Clause 5.2: Document and verify the software requirements (including SOUP, Cloud Computing, and AI or other where applicable).", type:"textarea" },
+    { id:"6.8", label:"Software Architectural Design", hint:"Clause 5.3: Define and document software architecture.", type:"textarea" },
+    { id:"6.9", label:"Software Detailed Design", hint:"Clause 5.4: Develop detailed design specifications (data, tables, configuration, etc.).", type:"textarea" },
+    { id:"6.10", label:"Software Unit Implementation", hint:"Clause 5.5: Implement and verify software units.", type:"textarea" },
+    { id:"6.11", label:"Software Integration and Testing", hint:"Clause 5.6: Integrate units and perform integration testing.", type:"textarea" },
+    { id:"6.12", label:"Software System Testing", hint:"Clause 5.7: Perform system-level testing.", type:"textarea" },
+    { id:"6.13", label:"Software Release", hint:"Clause 5.8: Ensure proper release procedures and documentation of controlled release of software.", type:"textarea" },
+    { id:"6.14", label:"Maintenance Plan", hint:"Clause 6.1: Establish and maintain Software Maintenance Plan (SMP), including SOUP, Security, AI as applicable.", type:"textarea" },
+    { id:"6.15", label:"Problem and Modification Analysis", hint:"Clause 6.2: Analyse problems and modifications systematically.", type:"textarea" },
+    { id:"6.16", label:"Modification Implementation", hint:"Clause 6.3: Implement and verify (review/test) modifications.", type:"textarea" },
+    { id:"6.17", label:"Risk Analysis for Hazardous Situations", hint:"Clause 7.1: Identify software contributions to hazardous situations.", type:"textarea" },
+    { id:"6.18", label:"Risk Control Measures", hint:"Clause 7.2: Implement risk control measures for software. Software controls shall be identified as requirements.", type:"textarea" },
+    { id:"6.19", label:"Verification of Risk Controls", hint:"Clause 7.3: Verify effectiveness of risk control measures.", type:"textarea" },
+    { id:"6.20", label:"Risk Management of Changes", hint:"Clause 7.4: Assess Risk Impact of software changes. Evidence: risk analyses.", type:"textarea" },
+    { id:"6.21", label:"Configuration Identification", hint:"Clause 8.1: Identify and document configuration items (software and documentation).", type:"textarea" },
+    { id:"6.22", label:"Change Control", hint:"Clause 8.2: Establish a change control process for software. Ensure integration points are identified where change control is a sub-process to the product level change management process.", type:"textarea" },
+    { id:"6.23", label:"Configuration Status Accounting", hint:"Clause 8.3: Maintain records of configuration status.", type:"textarea" },
+    { id:"6.24", label:"Problem Reporting", hint:"Clause 9.1: Prepare and manage problem reports.", type:"textarea" },
+    { id:"6.25", label:"Problem Investigation", hint:"Clause 9.2: Investigate reported problems thoroughly.", type:"textarea" },
+    { id:"6.26", label:"Communication", hint:"Clause 9.3: Advise relevant parties of problem status.", type:"textarea" },
+    { id:"6.27", label:"Change Control for Problem Resolution", hint:"Clause 9.4: Apply change control to fixes or corrections.", type:"textarea" },
+    { id:"6.28", label:"Record Maintenance", hint:"Clause 9.5: Maintain records for problem resolution through maintenance phase.", type:"textarea" },
+    { id:"6.29", label:"Trend Analysis", hint:"Clause 9.6: Analyse problems for trends and systematic issues.", type:"textarea" },
+    { id:"6.30", label:"Verification of Problem Resolution", hint:"Clause 9.7: Verify that problems are resolved effectively.", type:"textarea" },
+    { id:"6.31", label:"Test Documentation", hint:"Clause 9.8: Ensure test documentation is complete and accurate.", type:"textarea" }
+  ]},
+  { id: 7, title: "Medical Electrical Equipment (MEE) — 60601 Series", std:"ISO 60601 Series", na: true, questions: [
+    { id:"7.1", label:"Is the AI part of a hardware medical device, a component or accessory to a hardware medical device? If no, N/A this section.", type:"radio", options:["Yes — AI is part of a hardware medical device","No — N/A this section"] },
+    { id:"7.2", label:"Describe the hardware device on which the AI model is part.", hint:"Provide details, or refer to Software Development Plan and relevant documents.", type:"textarea" },
+    { id:"7.3", label:"Identify all 60601 standards in the series applicable to this device.", hint:"Identify or reference standards applicable (e.g., IEC TS 60601-4-6)", type:"textarea" },
+    { id:"7.4", label:"Identify how compliance to the relevant 60601 standards is demonstrated for this change.", hint:"Provide details", type:"textarea" }
+  ]},
+  { id: 8, title: "AI Governance", std:"ISO 42001 or equivalent for healthcare", na: true, questions: [
+    { id:"8.1", label:"Are qualified personnel available to support this change with the necessary skills and competency to use, develop and assess an AI system?", hint:"Provide reference to relevant procedure(s) or development plan(s) for roles and responsibilities. Consider AI Champions, AI Leads, Governance Boards, etc.", type:"textarea" },
+    { id:"8.2", label:"Is a review required by management for roles and responsibilities in your organisation to support AI governance?", hint:"Provide reference to Governance Policy/Procedure(s). Alternatively, a GAP Assessment or equivalent could be evidence of review.", type:"textarea" },
+    { id:"8.3", label:"Does the organisation have a structure defined with escalation path to leadership for AI governance decisions?", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.4", label:"Does the organisation have an AI champion/lead for overall AI governance?", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.5", label:"Document an AI Strategy/Policy regarding the use, development, deployment and monitoring of AI in the organisation.", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.6", label:"Provide AI policy or procedure(s) that include guidance on AI ethics, bias, explainability and transparency.", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.7", label:"How are 'values' or 'principles' defined for AI development or use within the organisation?", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.8", label:"Are AI objectives measurable and reviewed by the Leadership / Board?", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.9", label:"What objectives are relevant to this change? Has a policy, objectives and action plan been defined?", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.10", label:"How is sustainability or environmental impact assessed arising from the development and use of AI?", hint:"Provide detail or refer to relevant policy/procedure.", type:"textarea" },
+    { id:"8.11", label:"Are any new policies or procedures required to support development of AI arising from this change?", hint:"Yes/No. Provide detail or refer to relevant policy/procedure.", type:"textarea" }
+  ]},
+  { id: 9, title: "AI Data Management", std:"IEC PAS 63621", na: true, questions: [
+    { id:"9.1", label:"Has AI Data Governance been defined or impacted by this change?", hint:"Data governance process for the full data lifecycle should be defined. Evidence: procedures and data management plan(s).", type:"textarea" },
+    { id:"9.2", label:"Are the roles and responsibilities defined/impacted by this change?", hint:"Roles and responsibilities should be defined with specific focus on responsibilities for data quality and integrity.", type:"textarea" },
+    { id:"9.3", label:"Does this change impact data integrity associated with an AI model in development or in production?", hint:"The accuracy and consistency of data is necessary to be demonstrated. Adequate verification/validation processes are necessary to be defined and documented.", type:"textarea" },
+    { id:"9.4", label:"Does this change impact data security associated with an AI model in development or in production?", hint:"Data used in AI models should be protected from unauthorised access with appropriate encryption and access controls applied. The process should be documented.", type:"textarea" },
+    { id:"9.5", label:"Is there an impact to data traceability as a result of this change, associated with an AI model either in development or production?", hint:"Data traceability is necessary to be maintained and particularly so for changes applied to data. Use of audit trails and version control should be applied to support integrity and traceability.", type:"textarea" },
+    { id:"9.6", label:"Is the storage or access to data used in development or production impacted?", hint:"Data retention periods should be documented and methods for storage and retrieval should be defined and maintained.", type:"textarea" },
+    { id:"9.7", label:"Data Domain & Constraints: Is there an impact to existing data domain constraints, or are there additional constraints identified?", type:"textarea" }
+  ]},
+  { id: 10, title: "AI Training / Re-Training", std:"BS 30440-2023", na: true, questions: [
+    { id:"10.1", label:"Is AI Training or Re-Training required as part of this change?", hint:"Provide details of training/re-training required. Note: BS 30440-2023 section referenced.", type:"textarea" },
+    { id:"10.2", label:"Identify where the training data is sourced and describe to what extent it has been reviewed for bias or requires pre-processing/cleaning.", hint:"Provide details, including a flow of the data from source to use including summary statistics of its characteristics and features.", type:"textarea" },
+    { id:"10.3", label:"Does the data used for training require labelling?", hint:"Provide details of protocols/procedures in place for labelling data; supervised or unsupervised methods.", type:"textarea" },
+    { id:"10.4", label:"Are changes required to ethics and governance of training data arising from this change?", hint:"Are ethical or legal frameworks and agreements necessary to access data for use in development?", type:"textarea" },
+    { id:"10.5", label:"What products / sites require training/re-training and why?", hint:"Provide sufficient detail to understand the need for training or re-training and which versions of the application will receive training/re-training.", type:"textarea" },
+    { id:"10.6", label:"Are the origins of the clinical data known and have they provided their consent for use?", hint:"What details are known about the origins of the data or whether consent is sought by the supplier of the data for use in AI development?", type:"textarea" },
+    { id:"10.7", label:"Is it possible to identify or re-generate identifying features from AI data by malicious actors?", hint:"If it is possible to re-generate identifying features of the origins of the data back to individuals, what protections are in place to prevent this? Ensure the risks are adequately assessed/controlled.", type:"textarea" },
+    { id:"10.8", label:"Are the clinical data suitable for use for training an AI algorithm?", hint:"Provide details of the training data and how it is representative of the data required for intended purpose in an AI model based on the intended use.", type:"textarea" },
+    { id:"10.9", label:"Are training data set independent from the test, tuning and validation data?", hint:"Independence is critical — training and testing cannot reuse the same data with risk of bias and overfitting.", type:"textarea" },
+    { id:"10.10", label:"Are there sufficient quantities of data to yield adequate performance generalisation in use?", hint:"An assessment should be performed demonstrating the dataset as being sufficient to support the intended claims and represent the product user demographic without bias where possible.", type:"textarea" },
+    { id:"10.11", label:"What data handling processes are utilised?", hint:"Describe how the data is acquired, pre-processed, augmented, or post-processed if applicable.", type:"textarea" },
+    { id:"10.12", label:"Are noise reduction processes required?", hint:"Describe methods of signal noise reduction, filtering or data cleaning applied to training/re-training data.", type:"textarea" },
+    { id:"10.13", label:"Has a GDPR, HIPAA or other relevant Data Act assessment been performed on the originating data or data intended for use in training an AI algorithm intended for placement on the market?", hint:"If yes, provide summary or reference to assessment. Otherwise, provide details of applicability of assessments necessary to meet regulatory requirements based on the territories.", type:"textarea" },
+    { id:"10.14", label:"Has the distribution and quality of data including representativeness and impact of the changes been assessed?", hint:"What statistical data is used to demonstrate bias and ensure failure and quality of data in the updated AI model? Is this different from the original data set in use on the market?", type:"textarea" },
+    { id:"10.15", label:"What is the contextualisation of the training data relative to the intended use?", type:"textarea" }
+  ]},
+  { id: 11, title: "AI Algorithm(s) and Computing Efficiency", std: null, na: true, questions: [
+    { id:"11.1", label:"Identify the AI Algorithm(s) used or in development or production associated with this change.", type:"textarea" },
+    { id:"11.2", label:"Describe the computational complexity of the algorithm(s).", hint:"Provide details. Is the time complexity such that the algorithm performs within the safety and performance requirements of the intended use?", type:"textarea" },
+    { id:"11.3", label:"Describe the spatial or memory requirements of the algorithm(s).", hint:"Are there any known algorithm / model performance limitations?", type:"textarea" },
+    { id:"11.4", label:"Algorithm / Model Performance Limitations", hint:"Are there any known algorithm / model performance limitations that affect the safety or effectiveness of the intended use?", type:"textarea" }
+  ]},
+  { id: 12, title: "Third Party Pre-Trained AI Model Evaluation (SOUP)", std: null, na: true, questions: [
+    { id:"12.1", label:"Is the AI model under evaluation a Pre-Trained Model (PTM)?", hint:"PTMs refer to those used in whole or in part as a foundation or component of the AI system being assessed.", type:"radio", options:["Yes — PTM is used","No — proceed to next section"] },
+    { id:"12.2", label:"Has the provider of the PTM issued versioning and/or documentation?", hint:"Version identification and documentation from the PTM provider should be available and reviewed.", type:"textarea" },
+    { id:"12.3", label:"Describe the existing documentation provided by the PTM provider.", hint:"The documentation should describe the model architecture, training data, performance metrics, limitations, and intended use.", type:"textarea" },
+    { id:"12.4", label:"Provide documentation of model architecture.", hint:"Number of nodes, neurons, layers, parameters, etc. as available.", type:"textarea" },
+    { id:"12.5", label:"Describe model training approach.", hint:"The documentation should describe the training methodology, datasets used, and any fine-tuning applied.", type:"textarea" },
+    { id:"12.6", label:"Describe how the PTM has been evaluated for intended use.", hint:"The documentation should describe the evaluation methodology and results.", type:"textarea" },
+    { id:"12.7", label:"Describe data modality; the types of data the PTM accepts as input.", hint:"The documentation should describe the data modalities, formats, and preprocessing requirements.", type:"textarea" },
+    { id:"12.8", label:"Data volume and quality requirements for the PTM.", hint:"The documentation should describe minimum data volume and quality requirements.", type:"textarea" },
+    { id:"12.9", label:"Data quality; what level of documentation is provided on data quality used in training?", hint:"Describe the quality of the training data including sources, curation methods, and known biases.", type:"textarea" },
+    { id:"12.10", label:"Describe the interpretability of the PTM.", hint:"Interpretability is essential for ethical and regulatory compliance. Describe what explainability features are available.", type:"textarea" },
+    { id:"12.11", label:"Does the data comply with data management standards?", hint:"Yes/No. Provide reference to Data Management SOP and any applicable data standards.", type:"textarea" },
+    { id:"12.12", label:"Data privacy — what level of documentation is provided on privacy protection?", hint:"If applicable, the documentation should describe privacy protection measures applied to training data.", type:"textarea" },
+    { id:"12.13", label:"Baseline Performance — what level of documentation is provided on baseline performance?", hint:"The documentation should describe the baseline performance metrics and benchmarks.", type:"textarea" },
+    { id:"12.14", label:"Original source tasks used to train the PTM — what level of documentation is provided?", hint:"The documentation should describe the source tasks used in pre-training.", type:"textarea" },
+    { id:"12.15", label:"Training Settings, Test Settings and downstream fine-tuning details.", hint:"The documentation should describe the data, hyperparameters, and training/test settings.", type:"textarea" },
+    { id:"12.16", label:"Task Domain — what level of documentation is provided on the task domain?", hint:"The documentation should describe the task domain of the PTM and its applicability to the intended use.", type:"textarea" },
+    { id:"12.17", label:"Model Applicability — what level of documentation is provided?", hint:"The documentation should describe the data modalities, formats, and use cases the model is applicable for.", type:"textarea" },
+    { id:"12.18", label:"Task Type — what level of documentation is provided?", hint:"The documentation should describe the types of tasks the PTM is designed to perform.", type:"textarea" },
+    { id:"12.19", label:"Environment — what level of documentation is provided on hardware/software environment requirements?", hint:"The documentation should describe the hardware, software, and infrastructure requirements for deployment.", type:"textarea" },
+    { id:"12.20", label:"Downstream Training required — what level of documentation is provided?", hint:"The documentation should describe the data and settings required for downstream fine-tuning.", type:"textarea" },
+    { id:"12.21", label:"Assess intended purpose for the PTM — what level of documentation is provided?", hint:"A technical report should be generated to serve as evidence of the PTM's suitability for the intended purpose.", type:"textarea" },
+    { id:"12.22", label:"Privacy Protection — what level of documentation is provided?", hint:"The provider should declare the privacy protection measures applied to the PTM.", type:"textarea" },
+    { id:"12.23", label:"General methods for Quality Compliance of the PTM.", hint:"The quality evaluation of PTMs includes assessment of accuracy, robustness, fairness, and security.", type:"textarea" },
+    { id:"12.24", label:"Trainability — what level of documentation is provided on trainability?", hint:"The provider of the PTM should declare the model's trainability and adaptability for downstream tasks.", type:"textarea" },
+    { id:"12.25", label:"Architectural Scalability — what level of documentation is provided?", hint:"The provider should declare whether the model architecture is scalable and how.", type:"textarea" },
+    { id:"12.26", label:"Transferability — what level of documentation is provided?", hint:"The provider should declare the expected performance of the PTM when transferred to the target domain.", type:"textarea" },
+    { id:"12.27", label:"Model Efficiency — what level of documentation is provided?", hint:"The provider should declare the efficiency of the PTM, including inference time and resource requirements.", type:"textarea" },
+    { id:"12.28", label:"Result repeatability and consistency — what level of documentation is provided?", hint:"The provider should declare the repeatability of the PTM's outputs under identical input conditions.", type:"textarea" },
+    { id:"12.29", label:"Robustness — what level of documentation is provided?", hint:"The provider should declare the model's robustness to input variations, noise, and adversarial conditions.", type:"textarea" },
+    { id:"12.30", label:"Generalisability — what level of documentation is provided?", hint:"The provider should declare the model's generalisation performance across different datasets and domains.", type:"textarea" },
+    { id:"12.31", label:"Adversarial Security — what level of documentation is provided?", hint:"The provider is encouraged to declare the model's resistance to adversarial attacks.", type:"textarea" },
+    { id:"12.32", label:"Evaluation of PTM Documentation — has documentation been verified for completeness and accuracy?", hint:"The evaluation should verify the completeness and accuracy of the PTM documentation.", type:"textarea" },
+    { id:"12.33", label:"Is the description of the Pretrained Model complete and accurate?", hint:"The evaluation should verify the completeness and accuracy of the model description.", type:"textarea" },
+    { id:"12.34", label:"Is the trainability of the PTM adequately described?", hint:"Using the training examples and settings (including hyperparameters), verify trainability claims.", type:"textarea" },
+    { id:"12.35", label:"Is the Architecture adequately described to allow reproduction?", hint:"Adjust the hardware resources and software environment as described and verify reproducibility.", type:"textarea" },
+    { id:"12.36", label:"Is the PTM appropriate for transfer for use in the intended application?", hint:"Using the training examples and settings, verify transfer learning applicability.", type:"textarea" },
+    { id:"12.37", label:"Has the model's efficiency been evaluated?", hint:"Conduct forward inference using the PTM on relevant hardware and measure resource consumption.", type:"textarea" },
+    { id:"12.38", label:"Has the original output been demonstrated to be repeatable and consistent?", hint:"Use identical test cases to perform inference and verify consistency of outputs.", type:"textarea" },
+    { id:"12.39", label:"Has the PTM demonstrated robustness under varied conditions?", hint:"Evaluate the model's performance across different input distributions and edge cases.", type:"textarea" },
+    { id:"12.40", label:"Has the PTM demonstrated generalisation?", hint:"Use test sets that were not included in the training data to assess generalisation.", type:"textarea" },
+    { id:"12.41", label:"Has the PTM demonstrated adversarial security?", hint:"Create test cases to verify that the model's inference is robust to adversarial inputs.", type:"textarea" },
+    { id:"12.42", label:"Has the data been subject to Privacy Protection assessment?", hint:"Review the privacy protection measures applied to the training and evaluation data.", type:"textarea" },
+    { id:"12.43", label:"Include subgroup combination testing of PTM.", hint:"Group cases with similar characteristics into subgroups and test PTM performance across subgroups.", type:"textarea" },
+    { id:"12.44", label:"Include stress sample testing of PTM and as-deployed system.", hint:"Use atypical or hard-to-classify samples to stress test the PTM.", type:"textarea" },
+    { id:"12.45", label:"Include natural noise sample test cases.", hint:"Select samples with high levels of natural noise from the intended use environment.", type:"textarea" },
+    { id:"12.46", label:"Faulty Sample Test — ensure tests include faulty/erroneous samples.", hint:"Include samples of other types or mix clearly erroneous samples to test robustness.", type:"textarea" },
+    { id:"12.47", label:"Review adequacy and appropriateness of PTM evaluation strategy.", hint:"Provide risk assessment and rationale for choice of evaluation approach.", type:"textarea" },
+    { id:"12.48", label:"Ensure appropriate Image Classification testing if applicable.", hint:"For PTMs used in image classification tasks, the evaluation should include appropriate test sets.", type:"textarea" },
+    { id:"12.49", label:"Image Segmentation — provide rationale for evaluation approach if applicable.", hint:"For PTMs used in image segmentation tasks, provide appropriate evaluation rationale.", type:"textarea" },
+    { id:"12.50", label:"Text Processing — provide appropriate evaluation approach if applicable.", hint:"For PTMs used in text processing tasks, provide appropriate evaluation strategy.", type:"textarea" }
+  ]},
+  { id: 13, title: "AI Model Card", std: null, na: true, questions: [
+    { id:"13.1", label:"Is an AI Model Card available for this AI model?", hint:"Model card should contain the intended use, limitations, performance metrics, and ethical considerations.", type:"textarea" },
+    { id:"13.2", label:"Is AI Model development plan (or equivalent) available and up-to-date?", hint:"Provide details of model development plan including scope, objectives, and milestones.", type:"textarea" }
+  ]},
+  { id: 14, title: "AI Model Development", std:"IEC 62304 ED2-draft, BS 30440-2023", na: true, questions: [
+    { id:"14.1", label:"Are there any changes to the AI model development process arising from this change?", hint:"AI model development should be documented in a development plan and follow a defined SDLC.", type:"textarea" },
+    { id:"14.2", label:"What training data, validation data and test data is used?", hint:"Provide full traceability to the data sources, preprocessing steps, and data governance.", type:"textarea" },
+    { id:"14.3", label:"Is human oversight required as part of the AI model development process?", hint:"Provide details. Describe the human-in-the-loop process if applicable.", type:"textarea" },
+    { id:"14.4", label:"Are the inputs/outputs of the AI model fully specified?", hint:"A flow of inputs to outputs should be documented with full specification.", type:"textarea" },
+    { id:"14.5", label:"Is there a change to the AI model algorithms used?", hint:"Identify all algorithms and describe changes or confirm no change.", type:"textarea" }
+  ]},
+  { id: 15, title: "AI Model Testing", std:"IEC 63450-draft, BS 30440:2023", na: true, questions: [
+    { id:"15.1", label:"Has risk-based testing strategy been defined for this change?", hint:"Assessment of risks is necessary to define a risk-proportionate testing strategy.", type:"textarea" },
+    { id:"15.2", label:"Have test requirements been defined and approved?", hint:"Processes describe a set of requirements that must be verified by testing.", type:"textarea" },
+    { id:"15.3", label:"Is there a continuous testing strategy for this change?", hint:"Continuous testing as a risk control measure should be considered.", type:"textarea" },
+    { id:"15.4", label:"Has the test strategy been approved and signed off?", hint:"Test type can refer to a variety of testing approaches; ensure appropriate sign-off.", type:"textarea" },
+    { id:"15.5", label:"What stakeholders are involved in defining test requirements?", hint:"Relevant stakeholders should be identified and involved in defining test requirements.", type:"textarea" },
+    { id:"15.6", label:"Have acceptance criteria been defined and approved?", hint:"Acceptance criteria for all test cases should be defined and approved prior to testing.", type:"textarea" },
+    { id:"15.7", label:"What additional data sets are required for testing?", hint:"Data should be independent, unbiased, and representative of the intended use population.", type:"textarea" },
+    { id:"15.8", label:"Is there an approved strategy for problem resolution and documentation of deviations?", hint:"Problem resolution methods and documentation of deviations from the test strategy should be defined.", type:"textarea" },
+    { id:"15.9", label:"Document identification of testers, tools, and test environment.", hint:"Provide appropriate tools or methods for identifying testers, test environment, and test infrastructure.", type:"textarea" },
+    { id:"15.10", label:"Are test methods and testing documentation accessible and transparent?", hint:"Transparency of testing and test methods is a long-standing regulatory requirement.", type:"textarea" },
+    { id:"15.11", label:"Has test coverage method been defined and documented?", hint:"Common test coverage measures take various approaches, e.g., statement coverage, branch coverage, modified condition/decision coverage.", type:"textarea" }
+  ]},
+  { id: 16, title: "Product Risk Management Impact Assessment", std:"ISO 14971", na: true, questions: [
+    { id:"16.1", label:"Is Risk Management Plan established and current?", hint:"Is the Risk Management Plan up to date? Reference.", type:"textarea" },
+    { id:"16.2", label:"Is the Risk Management File complete and current?", hint:"Risk Management ISO 14971: 4.2 — all elements of the Risk Management File should be current.", type:"textarea" },
+    { id:"16.3", label:"Intended use and reasonably foreseeable misuse — has this been reviewed for impact by this change?", hint:"Is the intended Use Impacted with respect to use error, misuse, or new hazards introduced?", type:"textarea" },
+    { id:"16.4", label:"Hazard Identification — has a full hazard analysis been performed for this change?", hint:"Have you performed a Hazard Identification for all new hazards introduced by this change?", type:"textarea" },
+    { id:"16.5", label:"Have you estimated the risk for all new hazards and updated existing hazard estimates as required?", hint:"Ensure data is available to support the risk estimation. Update the Risk Management File.", type:"textarea" },
+    { id:"16.6", label:"Have risk control measures been implemented, verified, and documented?", hint:"Risk control options, verification of risk controls, and residual risk estimated and documented.", type:"textarea" },
+    { id:"16.7", label:"Are new risk control measures introduced by this change creating new hazards?", hint:"Risk control options introducing new hazards should be assessed and documented.", type:"textarea" },
+    { id:"16.8", label:"Have you assessed the overall residual risk and updated the benefit-risk analysis?", hint:"Residual risk estimated and justified. Benefit-risk analysis updated.", type:"textarea" },
+    { id:"16.9", label:"Have you reviewed the Risk Management Report?", hint:"Risk Management Report reviewed and updated. PMS data collected and reviewed.", type:"textarea" },
+    { id:"16.10", label:"Have you addressed AI-specific risks including bias?", hint:"Bias risk identification & mitigation documented. AI-specific hazards assessed.", type:"textarea" },
+    { id:"16.11", label:"Have you addressed usability risks?", hint:"ISO 62366-1, -2, -3. Usability risk assessment updated and documented.", type:"textarea" },
+    { id:"16.12", label:"Have you reviewed, updated and approved all required risk documentation?", hint:"UK Specific Requirements include additional documentation requirements.", type:"textarea" },
+    { id:"16.13", label:"Are there new hazards or risks introduced specifically by the AI model or its outputs?", hint:"Identify all documents with the new hazards or risks and provide reference.", type:"textarea" },
+    { id:"16.14", label:"Was a risk assessment performed for the AI model outputs and potential failure modes?", hint:"Provide evidence or reference to risk assessment documentation.", type:"textarea" },
+    { id:"16.15", label:"Is an update to the benefit-risk analysis required as a result of this change?", hint:"Is the benefit-risk analysis current and does it reflect the change?", type:"textarea" },
+    { id:"16.16", label:"Have Top Management reviewed the Risk Management Report for this change?", hint:"Top management shall review the Risk Management Report for significant changes.", type:"textarea" }
+  ]},
+  { id: 17, title: "Software Risk Management", std:"PD IEC TR 80002-1", na: true, questions: [
+    { id:"17.1", label:"Indicate whether software risk management activities are complete and current for this change.", type:"textarea" },
+    { id:"17.2", label:"Are there any new software hazardous situations introduced by this change?", hint:"If yes, where are these documented and what risk controls are in place?", type:"textarea" },
+    { id:"17.3", label:"Probability of Occurrence of Harm — has this been assessed for new software risks?", hint:"Provide details of how probability of harm has been assessed for new or changed software risks.", type:"textarea" },
+    { id:"17.4", label:"Has the list of software risk control measures been updated?", hint:"IEC 62304 and ISO 14971 requirements for software risk control measures should be reviewed.", type:"textarea" },
+    { id:"17.5", label:"SOUP Anomaly List — has this been reviewed and updated?", hint:"If Software of Unknown Provenance (SOUP) is used, the anomaly list should be reviewed and updated.", type:"textarea" },
+    { id:"17.6", label:"User Interface(s) — are any software user interface risks introduced?", hint:"Software Graphical / User Interface risk analysis should be reviewed and updated.", type:"textarea" },
+    { id:"17.7", label:"Are software risk residuals acceptable?", hint:"Provide example questions and evidence that residual software risks are acceptable.", type:"textarea" }
+  ]},
+  { id: 18, title: "AI Risk Management", std:"ISO/DTS-24971-2 2025", na: true, questions: [
+    { id:"18.1", label:"Is Risk Management for AI compliant with ISO/DTS 24971-2:2025 guidance?", hint:"Yes, No. If no, provide rationale.", type:"textarea" },
+    { id:"18.2", label:"Is a clinical safety case established for the AI system?", hint:"Yes, No. If no, provide rationale for omission.", type:"textarea" }
+  ]},
+  { id: 19, title: "Clinical Risk Management", std:"NHS Digital Health Guidance", na: true, questions: [
+    { id:"19.1", label:"Is the established clinical risk management approach compliant with NHS DCB0129 / DCB0160 or equivalent?", hint:"Security policy, procedures, and controls should be reviewed.", type:"textarea" },
+    { id:"19.2", label:"Perform security risk assessment for this change.", hint:"Identify threats, vulnerabilities, and impacts. Update the clinical risk register.", type:"textarea" },
+    { id:"19.3", label:"Are the security controls appropriate and effective for clinical risks?", hint:"CIA (confidentiality, integrity, availability) analysis should be performed.", type:"textarea" }
+  ]},
+  { id: 20, title: "Security Lifecycle", std:"IEC-81001-5-1 2021", na: true, questions: [
+    { id:"20.1", label:"Is the established security lifecycle approach compliant with IEC 81001-5-1?", hint:"Security policy, procedures, and controls should be reviewed and referenced.", type:"textarea" },
+    { id:"20.2", label:"Perform security risk assessment for this change.", hint:"Identify threats, vulnerabilities, and impacts. Document the threat model.", type:"textarea" },
+    { id:"20.3", label:"Are the security requirements identified and implemented for this change?", hint:"CIA (confidentiality, integrity, availability) requirements should be identified.", type:"textarea" },
+    { id:"20.4", label:"Develop/review secure design principles for this change.", hint:"Ensure Threat modelling is current and includes this change.", type:"textarea" },
+    { id:"20.5", label:"Are secure coding standards applied?", hint:"Identify process/procedures for secure coding and reference applicable standards.", type:"textarea" },
+    { id:"20.6", label:"Are existing security tests (penetration testing, SAST, DAST) up to date?", hint:"What has been performed and when? Are updates required for this change?", type:"textarea" },
+    { id:"20.7", label:"Is the secure development lifecycle documented and followed?", hint:"Reference the processes in place for secure development.", type:"textarea" },
+    { id:"20.8", label:"Are updates and patches managed in accordance with the security lifecycle?", hint:"Security advisories, patch management, and disclosure processes should be documented.", type:"textarea" },
+    { id:"20.9", label:"Have credible field security events been monitored and addressed?", hint:"Monitor field security events and describe how they feed into risk management.", type:"textarea" },
+    { id:"20.10", label:"Ensure risks with respect to security and privacy are adequately assessed.", hint:"Identify threats, vulnerabilities, and impacts. Reference documentation.", type:"textarea" }
+  ]},
+  { id: 21, title: "Software / AI BOM (Bill of Materials)", std: null, na: true, questions: [
+    { id:"21.1", label:"Identify SBOM / AI BOM — are these current and include all components impacted by this change?", hint:"SBOM and AIBOMs are necessary for compliance. Reference relevant documentation.", type:"textarea" },
+    { id:"21.2", label:"Are new software/AI components introduced that need to be added to the SBOM/AIBOM?", hint:"Yes/No. Provide reference to updated SBOM/AIBOM if applicable.", type:"textarea" }
+  ]},
+  { id: 22, title: "Usability Analysis", std:"ISO 62366-1, ISO 62366-3", na: true, questions: [
+    { id:"22.1", label:"How has usability been considered in the design of this change?", hint:"Include explainability, transparency, and ease of use considerations for AI systems.", type:"textarea" },
+    { id:"22.2", label:"Are usability studies required as a result of this change?", hint:"Provide details of any usability studies required or reference existing usability documentation.", type:"textarea" }
+  ]},
+  { id: 23, title: "Safety Performance and Deployment", std: null, na: true, questions: [
+    { id:"23.1", label:"What measures/controls are in place to ensure safety performance of the AI system in deployment?", hint:"Provide details. Provide reference to relevant documentation.", type:"textarea" },
+    { id:"23.2", label:"What claims are made about the safety performance of the AI system?", hint:"Provide details. Reference clinical evidence and performance evaluation.", type:"textarea" },
+    { id:"23.3", label:"How will this change impact the safety performance of the AI system?", hint:"Provide details.", type:"textarea" },
+    { id:"23.4", label:"How will this change be monitored in deployment?", hint:"Provide details.", type:"textarea" },
+    { id:"23.5", label:"What is the effect of the change on the performance specification?", hint:"Does the change have the potential to affect the performance specification?", type:"textarea" }
+  ]},
+  { id: 24, title: "Post-market Performance Evaluation (clinical)", std: null, na: true, questions: [
+    { id:"24.1", label:"Is there a change to the post-market clinical follow-up plan arising from this change?", hint:"Provide details.", type:"textarea" },
+    { id:"24.2", label:"How is this change monitored in the post-market phase?", hint:"Provide details. How can this change be detected, measured, and evaluated?", type:"textarea" },
+    { id:"24.3", label:"What level of clinical evidence is required to support this change?", hint:"Provide details. Reference applicable regulatory requirements.", type:"textarea" },
+    { id:"24.4", label:"What drift monitoring is required for this change?", hint:"Describe the ML drift monitoring strategy if applicable.", type:"textarea" }
+  ]},
+  { id: 25, title: "Pre-determined Change Control Plan", std: null, na: true, questions: [
+    { id:"25.1", label:"Is there an existing PCCP? If yes, define in detail.", hint:"Yes/No, if Yes, define in detail or reference relevant documentation.", type:"textarea" },
+    { id:"25.2", label:"PCCP Approval Date", hint:"Provide date PCCP was approved.", type:"input" },
+    { id:"25.3", label:"Will this change fall under the PCCP?", hint:"Yes/No. Provide details.", type:"textarea" }
+  ]},
+  { id: 26, title: "Post-market Software Monitoring, Logging and Reporting", std: null, na: true, questions: [
+    { id:"26.1", label:"What level of monitoring, logging and reporting is required for this change?", hint:"Provide details. Reference applicable standards and regulatory requirements.", type:"textarea" },
+    { id:"26.2", label:"How is the data collected and stored in the post-market phase?", hint:"Provide details. Reference applicable data management and retention policies.", type:"textarea" },
+    { id:"26.3", label:"Is the reporting, logging and monitoring approach compliant with applicable regulatory requirements?", hint:"Provide details. Reference applicable regulatory requirements.", type:"textarea" }
+  ]},
+  { id: 27, title: "EU AI Act Regulation 2024/1689", std:"EU AI Act 2024/1689 (as amended)", na: true, questions: [
+    { id:"27.1", label:"Identify the intended risk classification under the EU AI Act.", hint:"Article 8 stipulates that high-risk AI systems must comply with specific requirements.", type:"textarea" },
+    { id:"27.2", label:"Article 9 — Risk Management System: is a risk management system established and maintained?", hint:"Risk Management shall comply with Article 9 requirements.", type:"textarea" },
+    { id:"27.3", label:"Article 10 — Data and Data Governance: are data quality criteria defined?", hint:"Data used shall meet quality criteria as defined in Article 10.", type:"textarea" },
+    { id:"27.4", label:"Article 11 — Technical Documentation: is technical documentation complete?", hint:"Technical documentation shall be prepared and kept up to date.", type:"textarea" },
+    { id:"27.5", label:"Article 12 — Record Keeping and Logging: are automated logging capabilities in place?", hint:"Recording of logging for high-risk AI systems shall be ensured.", type:"textarea" },
+    { id:"27.6", label:"Article 13 — Transparency and Provision of Information: are instructions for use complete?", hint:"Transparency shall enable users to interpret the system's output.", type:"textarea" },
+    { id:"27.7", label:"Article 14 — Human Oversight: are human oversight measures implemented?", hint:"Ensure the system can be effectively overseen by natural persons.", type:"textarea" },
+    { id:"27.8", label:"Article 15 — Accuracy, Robustness and Cybersecurity: are appropriate levels achieved?", hint:"Achieve appropriate level of accuracy, robustness, and cybersecurity.", type:"textarea" },
+    { id:"27.9", label:"Have requirements for registration in the EU database been assessed?", hint:"Provide details. Reference applicable registration requirements.", type:"textarea" },
+    { id:"27.10", label:"How does this change impact EU AI Act compliance?", hint:"Provide details. Reference applicable EU AI Act articles.", type:"textarea" }
+  ]},
+  { id: 28, title: "Sustainability", std: null, na: true, questions: [
+    { id:"28.1", label:"Have sustainability requirements been assessed for this change?", hint:"Provide details. Reference applicable sustainability standards.", type:"textarea" },
+    { id:"28.2", label:"How does this change impact the environmental footprint of the AI system?", hint:"Provide details. Reference applicable environmental impact assessment.", type:"textarea" }
+  ]},
+  { id: 29, title: "Technical Documentation, DMR and DHR", std: null, na: true, questions: [
+    { id:"29.1", label:"Is the Device History Record (DHR) complete and current?", hint:"Provide details.", type:"textarea" },
+    { id:"29.2", label:"Is the Device Master Record (DMR) complete and current?", hint:"Provide details.", type:"textarea" },
+    { id:"29.3", label:"Are the Product Specifications (including AI model specifications) current?", hint:"Provide details.", type:"textarea" },
+    { id:"29.4", label:"Is the Declaration of Conformity (DoC) up to date?", hint:"Provide details.", type:"textarea" },
+    { id:"29.5", label:"Has the technical documentation been reviewed and updated for this change?", hint:"Provide details.", type:"textarea" }
+  ]},
+  { id: 30, title: "Checklist of Deliverables arising from this Change", std: null, questions: [
+    { id:"30.1", label:"Risk Management File", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.2", label:"Dataset Inventory and Data Management Documentation", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.3", label:"AI Model Card and Model Documentation", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.4", label:"Test Protocols and Test Reports", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.5", label:"Maintenance Plan / Software Maintenance Plan", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.6", label:"Cybersecurity risk assessment", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.7", label:"Vulnerability assessment / Penetration Test Report", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.8", label:"Post-market surveillance documentation", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.9", label:"User documentation, Instructions for Use (IFU)", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.10", label:"Clinical evidence (PMCF, SSCP, CER)", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.11", label:"PCCP documents (if applicable)", type:"radio", options:["Complete","Pending","N/A"] },
+    { id:"30.12", label:"Other deliverables — specify", type:"textarea" }
+  ]},
+  { id: 31, title: "Regulatory Approval and Conformity Assessment / Certification", std: null, questions: [
+    { id:"31.1", label:"Regulatory Change Classification", type:"radio", options:["Significant Change requiring new conformity assessment","Non-significant change — existing conformity assessment valid","N/A"] },
+    { id:"31.2", label:"Is a new conformity assessment or notified body submission required?", hint:"Provide details.", type:"textarea" },
+    { id:"31.3", label:"Has regulatory submission been made or planned?", hint:"Yes, via Authorised PCCP — provide reference. No — provide rationale.", type:"textarea" },
+    { id:"31.4", label:"Have minimum AI performance thresholds been met and verified?", hint:"Yes, minimum thresholds verified — provide reference. No — provide rationale.", type:"textarea" },
+    { id:"31.5", label:"Are all relevant regulatory submissions complete?", hint:"EU AI Act, MDR, IVDR, FDA 510(k), UKCA — check all relevant.", type:"checkbox", options:["EU AI Act registration/notification","EU MDR / IVDR conformity assessment","FDA 510(k) / PMA submission","UKCA / UK MDR","Other"] },
+    { id:"31.6", label:"Is an update required to the Declaration of Conformity (DoC)?", hint:"Provide reference to DoC and confirm if update is required.", type:"textarea" }
+  ]},
+  { id: 32, title: "Change Approval to Implement", std: null, questions: [
+    { id:"32.1", label:"Change Owner / Responsible Person", type:"input" },
+    { id:"32.2", label:"Date of Approval", type:"date" },
+    { id:"32.3", label:"Approved By (Name / Role)", type:"textarea" },
+    { id:"32.4", label:"Conditions / Notes for Approval", type:"textarea" }
+  ]},
+  { id: 33, title: "Deliverables required for Release", std: null, questions: [
+    { id:"33.1", label:"List all deliverables required to be complete before release of this change.", hint:"Provide a complete list referencing all documents, test reports, approvals, and regulatory submissions required.", type:"textarea" },
+    { id:"33.2", label:"Are any change deviations or exceptions required?", hint:"Provide details. For any deviation from the standard change process, document the rationale and approvals.", type:"textarea" },
+    { id:"33.3", label:"Identify how all deliverables will be verified as complete prior to release.", hint:"Document or reference how completeness of deliverables will be confirmed.", type:"textarea" }
+  ]},
+  { id: 34, title: "Implementation & Effectiveness Plan", std: null, questions: [
+    { id:"34.1", label:"Define Implementation Plan", hint:"Define or reference relevant implementation plan, including rollout strategy, training, and communications.", type:"textarea" },
+    { id:"34.2", label:"Are any change management or training activities required?", hint:"Provide details. For staff training, communication of changes, or process updates.", type:"textarea" },
+    { id:"34.3", label:"Identify effectiveness measures for this change.", hint:"Document or reference how effectiveness of the change will be monitored and evaluated.", type:"textarea" },
+    { id:"34.4", label:"Target date for implementation and effectiveness review.", hint:"dd/mmm/yyyy", type:"input" }
+  ]},
+  { id: 35, title: "Appendix: Additional Guidance", std: null, na: true, questions: [
+    { id:"35.1", label:"Appendix notes or supplementary information", hint:"Appendices may be deleted in use. This section is for additional guidance notes only.", type:"textarea" }
+  ]}
+];
+
+// ── STATE ──
+let state = {};
+let naState = {}; // { [secId]: { active: bool, rationale: string } }
+let currentSection = 1;
+let pendingNASecId = null;
+
+function initState() {
+  try {
+    const saved = localStorage.getItem('cmp_state_v4');
+    if (saved) { const p = JSON.parse(saved); state = p.state || {}; naState = p.naState || {}; }
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem('cmp_state_v4', JSON.stringify({state, naState})); } catch(e) {}
+  updateProgress();
+}
+
+// ── RENDER SIDEBAR ──
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = '';
+
+  const groups = [
+    { label: "A — Identification & Description", range: [1,5] },
+    { label: "B — Software & AI Lifecycle", range: [6,15] },
+    { label: "C — Risk Management", range: [16,20] },
+    { label: "D — Compliance & Monitoring", range: [21,28] },
+    { label: "E — Documentation & Approval", range: [29,35] }
+  ];
+
+  let sIdx = 0;
+  groups.forEach(g => {
+    const lbl = document.createElement('div');
+    lbl.className = 'sidebar-section-label';
+    lbl.textContent = g.label;
+    sidebar.appendChild(lbl);
+
+    for (let i = g.range[0]; i <= g.range[1]; i++) {
+      const sec = SECTIONS[i-1];
+      const item = document.createElement('div');
+      item.className = 'nav-item' + (currentSection === i ? ' active' : '') + (naState[i]?.active ? ' na' : '') + (isSectionAnswered(i) ? ' completed' : '');
+      item.innerHTML = `<span class="nav-num">${i}.</span><span style="flex:1">${sec.title}</span><span class="nav-dot"></span>`;
+      item.onclick = () => showSection(i);
+      sidebar.appendChild(item);
+    }
+  });
+}
+
+function isSectionAnswered(secId) {
+  if (naState[secId]?.active) return true;
+  const sec = SECTIONS[secId-1];
+  return sec.questions.some(q => {
+    const v = state[q.id];
+    if (!v) return false;
+    if (typeof v === 'string') return v.trim().length > 0;
+    if (Array.isArray(v)) return v.length > 0;
+    return false;
+  });
+}
+
+// ── RENDER MAIN ──
+function renderMain() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '';
+
+  SECTIONS.forEach(sec => {
+    const block = document.createElement('div');
+    block.className = 'section-block' + (sec.id === currentSection ? ' active' : '') + (naState[sec.id]?.active ? ' na-mode' : '');
+    block.id = `section-${sec.id}`;
+
+    const naBtn = sec.na !== false ? `<button class="na-toggle ${naState[sec.id]?.active ? 'active' : ''}" onclick="toggleNA(${sec.id})" title="Mark section as Not Applicable">☐ N/A</button>` : '';
+    const stdBadge = sec.std ? `<div class="section-subtitle">${sec.std.split(',').map(s => `<span class="standard-tag">${s.trim()}</span>`).join('')}</div>` : '';
+
+    block.innerHTML = `
+      <div class="section-header">
+        <div class="section-title-group">
+          <div class="section-badge">Section ${sec.id} of 35</div>
+          <div class="section-title">${sec.title}</div>
+          ${stdBadge}
+        </div>
+        ${naBtn}
+      </div>
+      <div class="na-overlay" id="na-overlay-${sec.id}">
+        <div class="na-overlay-label">⊘ Not Applicable</div>
+        <div class="na-overlay-rationale" id="na-rationale-display-${sec.id}">${naState[sec.id]?.rationale ? naState[sec.id].rationale : '<em>No rationale provided</em>'}</div>
+        <div class="na-overlay-edit" onclick="editNARationale(${sec.id})">Edit rationale</div>
+      </div>
+      <div class="questions-grid" id="qgrid-${sec.id}"></div>
+      <div class="section-nav-footer">
+        ${sec.id > 1 ? `<button class="btn btn-ghost" onclick="showSection(${sec.id-1})">← Previous</button>` : '<span></span>'}
+        ${sec.id < 35 ? `<button class="btn btn-primary" onclick="showSection(${sec.id+1})">Next →</button>` : '<button class="btn btn-primary" onclick="exportJSON()">⬇ Export</button>'}
+      </div>
+    `;
+
+    main.appendChild(block);
+  });
+
+  // Render all questions
+  SECTIONS.forEach(sec => {
+    const grid = document.getElementById(`qgrid-${sec.id}`);
+    sec.questions.forEach(q => {
+      grid.appendChild(renderQuestion(q));
+    });
+  });
+}
+
+function renderQuestion(q) {
+  const card = document.createElement('div');
+  const val = state[q.id];
+  const hasVal = val && (typeof val === 'string' ? val.trim().length > 0 : val.length > 0);
+  card.className = 'question-card' + (hasVal ? ' answered' : '');
+  card.id = `card-${q.id}`;
+
+  let inputHtml = '';
+
+  if (q.type === 'textarea') {
+    inputHtml = `<textarea class="field-textarea" id="inp-${q.id}" placeholder="Enter response…" onchange="updateField('${q.id}', this.value)" oninput="markAnswered('${q.id}', this.value)">${val || ''}</textarea>`;
+  } else if (q.type === 'input') {
+    inputHtml = `<input type="text" class="field-input" id="inp-${q.id}" value="${val || ''}" placeholder="Enter response…" onchange="updateField('${q.id}', this.value)" oninput="markAnswered('${q.id}', this.value)">`;
+  } else if (q.type === 'date') {
+    inputHtml = `<input type="date" id="inp-${q.id}" value="${val || ''}" onchange="updateField('${q.id}', this.value)">`;
+  } else if (q.type === 'checkbox') {
+    const selected = val || [];
+    inputHtml = `<div class="checkbox-group">${q.options.map((o,i) =>
+      `<label class="checkbox-item"><input type="checkbox" ${selected.includes(o)?'checked':''} onchange="updateCheckbox('${q.id}','${o}',this.checked)"><span>${o}</span></label>`
+    ).join('')}</div>`;
+  } else if (q.type === 'radio') {
+    inputHtml = `<div class="radio-group">${q.options.map(o =>
+      `<label class="radio-item"><input type="radio" name="${q.id}" value="${o}" ${val===o?'checked':''} onchange="updateField('${q.id}','${o}')"><span>${o}</span></label>`
+    ).join('')}</div>`;
+  }
+
+  card.innerHTML = `
+    <div class="question-header">
+      <span class="question-num">${q.id}</span>
+      <span class="question-label">${q.label}</span>
+    </div>
+    ${q.hint ? `<div class="question-hint">${q.hint}</div>` : ''}
+    ${inputHtml}
+  `;
+  return card;
+}
+
+// ── ACTIONS ──
+function showSection(id) {
+  document.querySelectorAll('.section-block').forEach(b => b.classList.remove('active'));
+  document.getElementById(`section-${id}`)?.classList.add('active');
+  currentSection = id;
+  renderSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleNA(secId) {
+  if (naState[secId]?.active) {
+    // Already N/A — toggle off directly (no rationale needed to un-NA)
+    naState[secId] = { active: false, rationale: '' };
+    applyNAState(secId);
+    saveState();
+    renderSidebar();
+  } else {
+    // Toggling ON — open rationale modal
+    pendingNASecId = secId;
+    const sec = SECTIONS[secId - 1];
+    document.getElementById('naModalSub').textContent = `Section ${secId}: ${sec.title}`;
+    document.getElementById('naRationaleInput').value = naState[secId]?.rationale || '';
+    document.getElementById('naRationaleModal').classList.add('open');
+    setTimeout(() => document.getElementById('naRationaleInput').focus(), 100);
+  }
+}
+
+function editNARationale(secId) {
+  pendingNASecId = secId;
+  const sec = SECTIONS[secId - 1];
+  document.getElementById('naModalSub').textContent = `Section ${secId}: ${sec.title}`;
+  document.getElementById('naRationaleInput').value = naState[secId]?.rationale || '';
+  document.getElementById('naRationaleModal').classList.add('open');
+  setTimeout(() => document.getElementById('naRationaleInput').focus(), 100);
+}
+
+function confirmNA() {
+  const rationale = document.getElementById('naRationaleInput').value.trim();
+  naState[pendingNASecId] = { active: true, rationale };
+  applyNAState(pendingNASecId);
+  saveState();
+  renderSidebar();
+  document.getElementById('naRationaleModal').classList.remove('open');
+  pendingNASecId = null;
+}
+
+function cancelNA() {
+  document.getElementById('naRationaleModal').classList.remove('open');
+  pendingNASecId = null;
+}
+
+function applyNAState(secId) {
+  const isNA = naState[secId]?.active;
+  const block = document.getElementById(`section-${secId}`);
+  if (!block) return;
+  block.classList.toggle('na-mode', isNA);
+  block.querySelector('.na-toggle')?.classList.toggle('active', isNA);
+  // Update rationale display
+  const display = document.getElementById(`na-rationale-display-${secId}`);
+  if (display) {
+    const r = naState[secId]?.rationale;
+    display.innerHTML = r ? r : '<em>No rationale provided</em>';
+  }
+}
+
+function updateField(id, val) {
+  state[id] = val;
+  const card = document.getElementById(`card-${id}`);
+  if (card) card.classList.toggle('answered', val.trim().length > 0);
+  saveState();
+}
+
+function markAnswered(id, val) {
+  const card = document.getElementById(`card-${id}`);
+  if (card) card.classList.toggle('answered', val.trim().length > 0);
+}
+
+function updateCheckbox(id, opt, checked) {
+  if (!state[id]) state[id] = [];
+  if (checked) { if (!state[id].includes(opt)) state[id].push(opt); }
+  else { state[id] = state[id].filter(o => o !== opt); }
+  const card = document.getElementById(`card-${id}`);
+  if (card) card.classList.toggle('answered', state[id].length > 0);
+  saveState();
+}
+
+function updateProgress() {
+  const total = 35;
+  const done = SECTIONS.filter(s => isSectionAnswered(s.id)).length;
+  document.getElementById('completedCount').textContent = done;
+  document.getElementById('progressBar').style.width = `${(done/total)*100}%`;
+  const pills = document.querySelectorAll('.progress-pill span');
+  pills.forEach(p => p.textContent = done);
+}
+
+function clearAll() {
+  if (!confirm('Clear all responses? This cannot be undone.')) return;
+  state = {}; naState = {};
+  saveState();
+  location.reload();
+}
+
+function exportJSON() {
+  const out = { meta: { version: "4.0", exported: new Date().toISOString(), title: "AI Change Management & Performance Assessment" }, naState, responses: state };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `AI_CMP_Assessment_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+// ── INIT ──
+initState();
+renderSidebar();
+renderMain();
+updateProgress();
+</script>
+
+<!-- DOCX Instructions Modal -->
+<div class="modal-overlay" id="docxInstructionsModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="width:480px">
+    <div class="modal-title">Generate Word Document</div>
+    <div class="modal-sub">Your responses have been saved as JSON — follow these steps to generate the .docx</div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1rem;font-family:var(--mono);font-size:0.75rem;line-height:1.8;margin-bottom:1.25rem;">
+      <div style="color:var(--text-muted);margin-bottom:0.5rem;">Step 1 — move both files to the same folder:</div>
+      <div style="color:var(--accent);">📄 <span id="docxJsonFilename">AI_CMP_Assessment.json</span></div>
+      <div style="color:var(--accent);">🐍 generate_docx.py</div>
+      <div style="color:var(--text-muted);margin-top:0.75rem;margin-bottom:0.5rem;">Step 2 — run in a terminal (requires Python 3 + python-docx):</div>
+      <div style="color:var(--text);background:var(--surface2);padding:0.4rem 0.6rem;border-radius:3px;border:1px solid var(--border);">pip install python-docx</div>
+      <div style="color:var(--text);background:var(--surface2);padding:0.4rem 0.6rem;border-radius:3px;border:1px solid var(--border);margin-top:0.35rem;">python3 generate_docx.py <span id="docxJsonFilename2" style="color:var(--accent)">responses.json</span></div>
+      <div style="color:var(--text-muted);margin-top:0.75rem;">The .docx will be saved in the same folder.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('docxInstructionsModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// sync filename into both spans
+function openDocxInstructions(filename) {
+  document.getElementById('docxJsonFilename').textContent = filename;
+  document.getElementById('docxJsonFilename2').textContent = filename;
+  document.getElementById('docxInstructionsModal').classList.add('open');
+}
+</script>
+// ── EXPORT MODAL ──
+function openExportModal() {
+  document.getElementById('exportModal').classList.add('open');
+}
+function closeExportModal(e) {
+  if (!e || e.target === document.getElementById('exportModal')) {
+    document.getElementById('exportModal').classList.remove('open');
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeExportModal();
+    cancelNA();
+  }
+});
+
+// ── PDF EXPORT ──
+function exportPDF() {
+  closeExportModal();
+  // Show all sections for printing, then restore
+  document.querySelectorAll('.section-block').forEach(b => b.classList.add('active'));
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.querySelectorAll('.section-block').forEach(b => b.classList.remove('active'));
+      document.getElementById(`section-${currentSection}`)?.classList.add('active');
+    }, 1000);
+  }, 300);
+}
+
+// ── DOCX EXPORT — saves JSON then shows instructions ──
+function exportForDOCX(btn) {
+  // First save the JSON
+  const dateStr = new Date().toISOString().slice(0,10);
+  const filename = `AI_CMP_Assessment_${dateStr}.json`;
+  const out = {
+    meta: { version: "4.0", exported: new Date().toISOString(), title: "AI Change Management & Performance Assessment" },
+    naState,
+    responses: state
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // Show instructions
+  closeExportModal();
+  setTimeout(() => {
+    document.getElementById('docxInstructionsModal').classList.add('open');
+    document.getElementById('docxJsonFilename').textContent = filename;
+  }, 400);
+}
+
+</script>
+</body></html>
